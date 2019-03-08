@@ -1040,8 +1040,8 @@ group:projectB:2.2;release
 
         then:
         noExceptionThrown()
-        assertOutputContains "Found result for rule [DefaultConfigurableRule{rule=class MP, ruleParams=[]}] and key group:projectB:2.2"
-        assertOutputContains "Found result for rule [DefaultConfigurableRule{rule=class MP, ruleParams=[]}] and key group:projectB:1.1"
+        outputContains "Found result for rule [DefaultConfigurableRule{rule=class MP, ruleParams=[]}] and key group:projectB:2.2"
+        outputContains "Found result for rule [DefaultConfigurableRule{rule=class MP, ruleParams=[]}] and key group:projectB:1.1"
     }
 
     def "changing the implementation of a rule invalidates the cache"() {
