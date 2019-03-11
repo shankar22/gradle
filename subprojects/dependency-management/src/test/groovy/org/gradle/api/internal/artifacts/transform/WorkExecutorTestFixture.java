@@ -22,6 +22,7 @@ import org.gradle.caching.internal.controller.BuildCacheLoadCommand;
 import org.gradle.caching.internal.controller.BuildCacheStoreCommand;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.DefaultBuildCancellationToken;
+import org.gradle.internal.Try;
 import org.gradle.internal.execution.IncrementalContext;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.UpToDateResult;
@@ -36,8 +37,8 @@ import org.gradle.internal.service.scopes.ExecutionGradleServices;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror;
 
-import javax.annotation.Nullable;
 import java.io.File;
+import java.util.Optional;
 
 public class WorkExecutorTestFixture {
 
@@ -52,10 +53,9 @@ public class WorkExecutorTestFixture {
             return false;
         }
 
-        @Nullable
         @Override
-        public <T> T load(BuildCacheLoadCommand<T> command) {
-            return null;
+        public <T> Optional<Try<T>> load(BuildCacheLoadCommand<T> command) {
+            return Optional.empty();
         }
 
         @Override

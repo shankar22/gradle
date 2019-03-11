@@ -23,6 +23,7 @@ import org.gradle.caching.BuildCacheKey
 import org.gradle.caching.BuildCacheService
 import org.gradle.caching.internal.controller.service.BuildCacheServicesConfiguration
 import org.gradle.caching.local.internal.LocalBuildCacheService
+import org.gradle.internal.Try
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testing.internal.util.Specification
@@ -70,8 +71,8 @@ class DefaultBuildCacheControllerTest extends Specification {
                 }
 
                 @Override
-                Object getMetadata() {
-                    return null
+                Try getUnpackResult() {
+                    return Try.successful(Optional.empty())
                 }
             }
         }

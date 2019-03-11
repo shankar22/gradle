@@ -96,7 +96,7 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
             }
             remote = createRemoteCacheConfiguration(instantiator, type, registrations);
         }
-        T configurationObject = Cast.uncheckedCast(remote);
+        T configurationObject = Cast.uncheckedNonnullCast(remote);
         configuration.execute(configurationObject);
         return configurationObject;
     }

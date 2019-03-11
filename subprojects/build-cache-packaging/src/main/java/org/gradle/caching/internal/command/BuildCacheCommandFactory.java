@@ -31,6 +31,7 @@ import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.caching.internal.origin.OriginMetadataFactory;
 import org.gradle.caching.internal.packaging.BuildCacheEntryPacker;
 import org.gradle.caching.internal.packaging.UnrecoverableUnpackingException;
+import org.gradle.internal.Try;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
@@ -66,29 +67,27 @@ public class BuildCacheCommandFactory {
         this.stringInterner = stringInterner;
     }
 
-    public BuildCacheLoadCommand<LoadMetadata> createLoad(BuildCacheKey cacheKey, CacheableEntity entity, BuildCacheLoadListener loadListener) {
-        return new LoadCommand(cacheKey, entity, loadListener);
+    public BuildCacheLoadCommand<UnpackResult> createLoad(BuildCacheKey cacheKey, CacheableEntity entity) {
+        return new LoadCommand(cacheKey, entity);
     }
 
     public BuildCacheStoreCommand createStore(BuildCacheKey cacheKey, CacheableEntity entity, Map<String, CurrentFileCollectionFingerprint> fingerprints, long executionTime) {
         return new StoreCommand(cacheKey, entity, fingerprints, executionTime);
     }
 
-    public interface LoadMetadata {
+    public interface UnpackResult {
         OriginMetadata getOriginMetadata();
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getResultingSnapshots();
     }
 
-    private class LoadCommand implements BuildCacheLoadCommand<LoadMetadata> {
+    private class LoadCommand implements BuildCacheLoadCommand<UnpackResult> {
 
         private final BuildCacheKey cacheKey;
         private final CacheableEntity entity;
-        private final BuildCacheLoadListener loadListener;
 
-        private LoadCommand(BuildCacheKey cacheKey, CacheableEntity entity, BuildCacheLoadListener loadListener) {
+        private LoadCommand(BuildCacheKey cacheKey, CacheableEntity entity) {
             this.cacheKey = cacheKey;
             this.entity = entity;
-            this.loadListener = loadListener;
         }
 
         @Override
@@ -97,20 +96,20 @@ public class BuildCacheCommandFactory {
         }
 
         @Override
-        public BuildCacheLoadCommand.Result<LoadMetadata> load(InputStream input) {
+        public BuildCacheLoadCommand.Result<UnpackResult> load(InputStream input) {
             try {
                 BuildCacheEntryPacker.UnpackResult unpackResult = packer.unpack(entity, input, originMetadataFactory.createReader(entity));
                 ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshots = snapshotUnpackedData(unpackResult.getSnapshots());
                 LOGGER.info("Unpacked trees for {} from cache.", entity.getDisplayName());
-                return new Result<LoadMetadata>() {
+                return new Result<UnpackResult>() {
                     @Override
                     public long getArtifactEntryCount() {
                         return unpackResult.getEntries();
                     }
 
                     @Override
-                    public LoadMetadata getMetadata() {
-                        return new LoadMetadata() {
+                    public Try<UnpackResult> getUnpackResult() {
+                        return Try.successful(new UnpackResult() {
                             @Override
                             public OriginMetadata getOriginMetadata() {
                                 return unpackResult.getOriginMetadata();
@@ -120,19 +119,29 @@ public class BuildCacheCommandFactory {
                             public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getResultingSnapshots() {
                                 return snapshots;
                             }
-                        };
+                        });
                     }
                 };
             } catch (Exception e) {
                 LOGGER.warn("Cleaning {} after failed load from cache.", entity.getDisplayName());
+                final Exception failure = new GradleException(String.format("Failed to unpack trees for %s", entity.getDisplayName()), e);
                 try {
                     cleanupTreesAfterUnpackFailure();
-                    loadListener.afterLoadFailedAndWasCleanedUp(e);
+                    return new Result<UnpackResult>() {
+                        @Override
+                        public long getArtifactEntryCount() {
+                            return -1;
+                        }
+
+                        @Override
+                        public Try<UnpackResult> getUnpackResult() {
+                            return Try.failure(failure);
+                        }
+                    };
                 } catch (Exception eCleanup) {
                     LOGGER.warn("Unrecoverable error during cleaning up after unpack failure", eCleanup);
                     throw new UnrecoverableUnpackingException(String.format("Failed to unpack trees for %s, and then failed to clean up; see log above for details", entity.getDisplayName()), e);
                 }
-                throw new GradleException(String.format("Failed to unpack trees for %s", entity.getDisplayName()), e);
             } finally {
                 cleanLocalState();
             }

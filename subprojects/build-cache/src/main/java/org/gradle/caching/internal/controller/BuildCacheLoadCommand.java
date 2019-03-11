@@ -17,6 +17,7 @@
 package org.gradle.caching.internal.controller;
 
 import org.gradle.caching.BuildCacheKey;
+import org.gradle.internal.Try;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -45,11 +46,9 @@ public interface BuildCacheLoadCommand<T> {
         long getArtifactEntryCount();
 
         /**
-         * Any metadata about the loaded artifact.
-         *
-         * Value may not be null.
+         * The result of unpacking the cached artifact.
          */
-        T getMetadata();
+        Try<T> getUnpackResult();
     }
 
 }

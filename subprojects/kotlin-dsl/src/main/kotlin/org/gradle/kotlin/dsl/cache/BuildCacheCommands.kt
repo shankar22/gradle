@@ -21,7 +21,7 @@ import org.gradle.caching.internal.controller.BuildCacheLoadCommand
 import org.gradle.caching.internal.controller.BuildCacheStoreCommand
 import org.gradle.caching.internal.origin.OriginMetadata
 
-import org.gradle.internal.id.UniqueId
+import org.gradle.internal.Try
 
 import java.io.File
 import java.io.InputStream
@@ -58,8 +58,7 @@ fun String.withoutPrefix(): String {
 internal
 class LoadDirectory(
     private val directory: File,
-    private val cacheKey: BuildCacheKey,
-    private val currentBuildInvocationId: UniqueId
+    private val cacheKey: BuildCacheKey
 ) : BuildCacheLoadCommand<OriginMetadata> {
 
     override fun getKey(): BuildCacheKey = cacheKey
@@ -70,11 +69,8 @@ class LoadDirectory(
 
         return object : BuildCacheLoadCommand.Result<OriginMetadata> {
 
-            override fun getMetadata() = metadata.run {
-                when (buildInvocationId) {
-                    currentBuildInvocationId -> OriginMetadata(buildInvocationId, executionTimeMillis)
-                    else -> OriginMetadata(buildInvocationId, executionTimeMillis)
-                }
+            override fun getUnpackResult() = metadata.run {
+                Try.successful(OriginMetadata(buildInvocationId, executionTimeMillis))
             }
 
             override fun getArtifactEntryCount(): Long = entryCount

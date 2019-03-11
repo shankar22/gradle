@@ -42,19 +42,18 @@ class LoadDirectoryTest : TestWithTempFiles() {
         val currentBuildInvocation = UniqueId.generate()
         val subject = LoadDirectory(
             newFolder(),
-            ScriptBuildCacheKey("test-key", "test-key/42"),
-            currentBuildInvocation
+            ScriptBuildCacheKey("test-key", "test-key/42")
         )
 
         // then:
         assertThat(
-            subject.load(packProducedBy(currentBuildInvocation))!!.metadata.buildInvocationId,
+            subject.load(packProducedBy(currentBuildInvocation))!!.unpackResult.get().buildInvocationId,
             equalTo(currentBuildInvocation)
         )
 
         // and:
         assertThat(
-            subject.load(packProducedBy(previousBuildInvocation))!!.metadata.buildInvocationId,
+            subject.load(packProducedBy(previousBuildInvocation))!!.unpackResult.get().buildInvocationId,
             not(equalTo(currentBuildInvocation))
         )
     }

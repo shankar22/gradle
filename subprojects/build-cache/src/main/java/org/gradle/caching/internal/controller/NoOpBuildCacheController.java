@@ -16,6 +16,10 @@
 
 package org.gradle.caching.internal.controller;
 
+import org.gradle.internal.Try;
+
+import java.util.Optional;
+
 public class NoOpBuildCacheController implements BuildCacheController {
 
     public static final BuildCacheController INSTANCE = new NoOpBuildCacheController();
@@ -34,8 +38,8 @@ public class NoOpBuildCacheController implements BuildCacheController {
     }
 
     @Override
-    public <T> T load(BuildCacheLoadCommand<T> command) {
-        return null;
+    public <T> Optional<Try<T>> load(BuildCacheLoadCommand<T> command) {
+        return Optional.empty();
     }
 
     @Override
