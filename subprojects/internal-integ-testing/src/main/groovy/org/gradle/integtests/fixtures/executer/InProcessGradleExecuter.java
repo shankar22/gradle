@@ -295,7 +295,6 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         } finally {
             // Restore the environment
             System.setProperties(originalSysProperties);
-            resetTempDirLocation();
             processEnvironment.maybeSetProcessDir(originalUserDir);
             for (String envVar : changedEnvVars) {
                 String oldValue = originalEnv.get(envVar);
@@ -308,10 +307,6 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             System.setProperty("user.dir", originalSysProperties.getProperty("user.dir"));
             System.setIn(originalStdIn);
         }
-    }
-
-    private void resetTempDirLocation() {
-        SetSystemProperties.resetTempDirLocation();
     }
 
     private LoggingManagerInternal createLoggingManager(StartParameter startParameter, OutputStream outputStream, OutputStream errorStream) {
@@ -338,7 +333,6 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         }
         Map<String, String> implicitJvmSystemProperties = getImplicitJvmSystemProperties();
         System.getProperties().putAll(implicitJvmSystemProperties);
-        resetTempDirLocation();
 
         // TODO: Fix tests that rely on this being set before we process arguments like this...
         StartParameterInternal startParameter = new StartParameterInternal();
