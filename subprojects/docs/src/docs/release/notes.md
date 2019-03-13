@@ -22,7 +22,7 @@ details of 2
 
 ## Upgrade Instructions
 
-Switch your build to use Gradle @version@ by updating your wrapper properties:
+Switch your build to use Gradle @version@ by updating your wrapper:
 
 `./gradlew wrapper --gradle-version=@version@`
 
