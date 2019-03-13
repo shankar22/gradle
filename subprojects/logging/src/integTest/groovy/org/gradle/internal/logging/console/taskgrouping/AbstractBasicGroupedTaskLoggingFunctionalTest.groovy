@@ -43,7 +43,7 @@ abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractCon
                     doFirst { 
                         logger.error "Error from " + project.name
                         logger.quiet "Output from " + project.name
-                        new java.net.URL("${server.uri}/log" + project.name).openConnection().getContentLength()
+                        ${server.callFromBuildUsingExpression("'log' + project.name")}
                         logger.quiet "Done with " + project.name 
                         logger.error "Done with " + project.name
                     } 
@@ -53,7 +53,8 @@ abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractCon
 
         when:
         server.expectConcurrent("log1", "log2", "log3")
-        result = executer.withArgument("--parallel").withTasks("log").start().waitForFinish()
+        executer.withArgument("--parallel")
+        run("log")
 
         then:
         result.groupedOutput.taskCount == 3
