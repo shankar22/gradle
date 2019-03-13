@@ -43,7 +43,7 @@ abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractCon
                     doFirst { 
                         logger.error "Error from " + project.name
                         logger.quiet "Output from " + project.name
-                        ${server.callFromBuildUsingExpression("'log' + project.name")}
+                        new java.net.URL("${server.uri}/log" + project.name).openConnection().getContentLength()
                         logger.quiet "Done with " + project.name 
                         logger.error "Done with " + project.name
                     } 
